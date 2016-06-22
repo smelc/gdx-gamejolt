@@ -1,4 +1,4 @@
-package com.hgames.gdx.gamejolt;
+package com.hgames.gdx.gamejolt.answers;
 
 /**
  * The answer of a

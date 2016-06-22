@@ -7,9 +7,17 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net.HttpMethods;
 import com.badlogic.gdx.Net.HttpRequest;
 import com.badlogic.gdx.Net.HttpResponse;
+import com.hgames.gdx.gamejolt.answers.FetchTrophyAnswer;
 import com.hgames.gdx.gamejolt.internal.AnswerParser;
 import com.hgames.gdx.gamejolt.internal.HttpResponseListenerForwarder;
 import com.hgames.gdx.gamejolt.internal.RequestBuilder;
+import com.hgames.gdx.gamejolt.requests.AbstractRequest;
+import com.hgames.gdx.gamejolt.requests.AddTrophyRequest;
+import com.hgames.gdx.gamejolt.requests.AuthRequest;
+import com.hgames.gdx.gamejolt.requests.CloseSessionRequest;
+import com.hgames.gdx.gamejolt.requests.FetchTrophyRequest;
+import com.hgames.gdx.gamejolt.requests.OpenSessionRequest;
+import com.hgames.gdx.gamejolt.requests.PingSessionRequest;
 
 /**
  * The entry point to the library. Check subtypes for concrete implementations:
@@ -116,13 +124,11 @@ public abstract class GdxGameJolt {
 	}
 
 	public void auth(final AuthRequest request) {
-		if (!initialized())
+		if (!isReady(false))
 			return;
 
 		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/users/auth/");
-		builder.addKeyValuePair("game_id", String.valueOf(gameID));
-		builder.addKeyValuePair("username", username);
-		builder.addKeyValuePair("user_token", userToken);
+		addGameIDUserNameUserToken(builder);
 
 		final HttpRequest http = buildRequest(builder.build());
 		if (http == null)
@@ -131,11 +137,78 @@ public abstract class GdxGameJolt {
 		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, request) {
 			@Override
 			public void handleHttpResponse(HttpResponse httpResponse) {
-				final boolean answer = parser.parseAuthAnswer(httpResponse.getResultAsString());
+				final Boolean answer = parser.parseAuthAnswer(httpResponse.getResultAsString());
+				if (answer == null)
+					return;
+
 				GdxGameJolt.this.authentified = answer;
 
 				log((answer ? "Successfully authentified" : "Could not authentify") + " " + username + "/"
 						+ userToken + " on GameJolt");
+			}
+		});
+	}
+
+	/**
+	 * Launches a request to record that a trophy was achieved, as specified in
+	 * <a href="http://gamejolt.com/api/doc/game/trophies/add-achieved">GameJolt
+	 * 's API</a>.
+	 * 
+	 * @param atr
+	 *            The trophy to add
+	 */
+	public void addTrophy(final AddTrophyRequest atr) {
+		if (!isReady(true))
+			return;
+
+		final RequestBuilder builder = new RequestBuilder(
+				"http://gamejolt.com/api/game/v1/trophies/add-achieved");
+		addGameIDUserNameUserToken(builder);
+		builder.addKeyValuePair("trophy_id", atr.trophyID);
+
+		final HttpRequest http = buildRequest(builder.build());
+		if (http == null)
+			return;
+
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, atr) {
+			@Override
+			public void handleHttpResponse(HttpResponse httpResponse) {
+				final boolean answer = parser.parseAddTrophyAnswer(httpResponse.getResultAsString());
+
+				if (listener != null)
+					listener.addTrophies(atr, answer);
+			}
+		});
+	}
+
+
+	/**
+	 * Launches a request telling the player is starting a game session, as
+	 * specified in
+	 * <a href="http://gamejolt.com/api/doc/game/sessions/close">GameJolt's
+	 * API</a>.
+	 * 
+	 * @param csr
+	 */
+	public void closeSession(final CloseSessionRequest csr) {
+		/* Not checking the listener, it is usually okay not to get notified of the answer */
+		if (!isReady(false))
+			return;
+
+		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/sessions/close/");
+		addGameIDUserNameUserToken(builder);
+
+		final HttpRequest http = buildRequest(builder.build());
+		if (http == null)
+			return;
+
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, csr) {
+			@Override
+			public void handleHttpResponse(HttpResponse httpResponse) {
+				final Boolean answer = parser.parseCloseSessionAnswer(httpResponse.getResultAsString());
+
+				if (answer != null && listener != null)
+					listener.closedSession(csr, answer);
 			}
 		});
 	}
@@ -149,7 +222,7 @@ public abstract class GdxGameJolt {
 	 *            The trophies to request. Must not be empty.
 	 */
 	public void fetchTrophy(final FetchTrophyRequest ftr) {
-		if (!initialized())
+		if (!isReady(true))
 			return;
 
 		if (ftr.trophyIDs.length == 0) {
@@ -158,9 +231,7 @@ public abstract class GdxGameJolt {
 		}
 
 		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/trophies/");
-		builder.addKeyValuePair("game_id", String.valueOf(gameID));
-		builder.addKeyValuePair("username", username);
-		builder.addKeyValuePair("user_token", userToken);
+		addGameIDUserNameUserToken(builder);
 		if (ftr.achieved != null)
 			builder.addKeyValuePair("achieved", String.valueOf(ftr.achieved));
 
@@ -183,45 +254,112 @@ public abstract class GdxGameJolt {
 				final List<FetchTrophyAnswer> trophies = parser
 						.parseFetchTrophyAnswer(httpResponse.getResultAsString());
 
-				if (listener != null)
+				if (trophies != null && listener != null)
 					listener.fetchedTrophies(ftr, trophies);
 			}
 		});
 	}
 
 	/**
-	 * Launches a request to record that a trophy was achieved, as specified in
-	 * <a href="http://gamejolt.com/api/doc/game/trophies/add-achieved">GameJolt
-	 * 's API</a>.
+	 * Launches a request telling the player is starting a game session, as
+	 * specified in
+	 * <a href="http://gamejolt.com/api/doc/game/sessions/open">GameJolt's
+	 * API</a>.
 	 * 
-	 * @param atr
-	 *            The trophy to add
+	 * <p>
+	 * Don't forget to ping GameJolt every 30 seconds after that.
+	 * </p>
+	 * 
+	 * @param osr
 	 */
-	public void addTrophy(final AddTrophyRequest atr) {
-		if (!initialized())
+	public void openSession(final OpenSessionRequest osr) {
+		/* Not checking the listener, it is usually okay not to get notified of the answer */
+		if (!isReady(false))
 			return;
 
-		final RequestBuilder builder = new RequestBuilder(
-				"http://gamejolt.com/api/game/v1/trophies/add-achieved");
-		builder.addKeyValuePair("game_id", String.valueOf(gameID));
-		builder.addKeyValuePair("username", username);
-		builder.addKeyValuePair("user_token", userToken);
-		builder.addKeyValuePair("trophy_id", atr.trophyID);
+		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/sessions/open/");
+		addGameIDUserNameUserToken(builder);
 
 		final HttpRequest http = buildRequest(builder.build());
 		if (http == null)
 			return;
 
-		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, atr) {
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, osr) {
 			@Override
 			public void handleHttpResponse(HttpResponse httpResponse) {
-				final boolean answer = parser.parseAddTropyAnswer(httpResponse.getResultAsString());
+				final Boolean answer = parser.parseOpenSessionAnswer(httpResponse.getResultAsString());
 
-				if (listener != null)
-					listener.addTrophies(atr, answer);
+				if (answer != null && listener != null)
+					listener.openedSession(osr, answer);
 			}
 		});
 	}
+
+	/**
+	 * Launches a request telling the player's session is active, as specified
+	 * in <a href="http://gamejolt.com/api/doc/game/sessions/ping">GameJolt's
+	 * API</a>.
+	 * 
+	 * @param psr
+	 */
+	public void pingSession(final PingSessionRequest psr) {
+		if (!isReady(false))
+			return;
+
+		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/sessions/ping/");
+		addGameIDUserNameUserToken(builder);
+
+		if (psr.activeOrIdle != null)
+			builder.addKeyValuePair("status", String.valueOf(psr.activeOrIdle));
+
+		final HttpRequest http = buildRequest(builder.build());
+		if (http == null)
+			return;
+
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, psr) {
+			@Override
+			public void handleHttpResponse(HttpResponse httpResponse) {
+				final Boolean answer = parser.parsePingSessionAnswer(httpResponse.getResultAsString());
+
+				if (answer != null && listener != null)
+					listener.pingedSession(psr, answer);
+			}
+		});
+	}
+
+	// Pings an open session to tell the system that it's still active. If the
+	// session hasn't been pinged within 120 seconds, the system will close the
+	// session and you will have to open another one. It's recommended that you
+	// ping every 30 seconds or so to keep the system from cleaning up your
+	// session. You can also let the system know whether the player is in an
+	// "active" or "idle" state within your game through this call.
+	//
+	// URL Call
+	// http://gamejolt.com/api/game/v1/sessions/ping/
+	// Required Parameters
+	// game_id
+	// The ID of your game.
+	// username
+	// The username of the user.
+	// user_token
+	// The user's token.
+	// Optional Parameters
+	// status
+	// Can be "active" or "idle". The session starts off in an "active" state.
+	// Returns
+	// Success or failure.
+
+	// URL Call
+	// http://gamejolt.com/api/game/v1/sessions/close/
+	// Required Parameters
+	// game_id
+	// The ID of your game.
+	// username
+	// The username of the user.
+	// user_token
+	// The user's token.
+	// Returns
+	// Success or failure.
 
 	protected /* @Nullable */ HttpRequest buildRequest(String request) {
 		System.out.println("Received request: " + request);
@@ -260,10 +398,17 @@ public abstract class GdxGameJolt {
 			Gdx.app.log(TAG, log);
 	}
 
-	protected boolean initialized() {
-		return Gdx.net != null && username != null && userToken != null && listener != null;
+	protected boolean isReady(boolean checkListener) {
+		return Gdx.net != null && username != null && userToken != null
+				&& (!checkListener || listener != null);
 	}
 
 	protected abstract String md5(String s) throws Exception;
+
+	private void addGameIDUserNameUserToken(RequestBuilder builder) {
+		builder.addKeyValuePair("game_id", String.valueOf(gameID));
+		builder.addKeyValuePair("username", username);
+		builder.addKeyValuePair("user_token", userToken);
+	}
 
 }

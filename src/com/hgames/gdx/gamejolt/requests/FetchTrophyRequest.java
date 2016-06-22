@@ -1,4 +1,4 @@
-package com.hgames.gdx.gamejolt;
+package com.hgames.gdx.gamejolt.requests;
 
 /**
  * The request for a trophy as specified in

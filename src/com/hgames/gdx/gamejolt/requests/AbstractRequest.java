@@ -1,4 +1,4 @@
-package com.hgames.gdx.gamejolt;
+package com.hgames.gdx.gamejolt.requests;
 
 /**
  * The super type of all requests.

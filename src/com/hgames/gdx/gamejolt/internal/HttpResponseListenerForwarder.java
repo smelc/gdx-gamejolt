@@ -1,9 +1,9 @@
 package com.hgames.gdx.gamejolt.internal;
 
 import com.badlogic.gdx.Net.HttpResponseListener;
-import com.hgames.gdx.gamejolt.AbstractRequest;
 import com.hgames.gdx.gamejolt.GdxGameJolt;
 import com.hgames.gdx.gamejolt.IGdxGameJoltResponseListener;
+import com.hgames.gdx.gamejolt.requests.AbstractRequest;
 
 /**
  * An helper class for the implementation of {@link GdxGameJolt}, that does

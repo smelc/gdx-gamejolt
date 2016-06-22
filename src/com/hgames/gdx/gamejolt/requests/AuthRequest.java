@@ -1,4 +1,6 @@
-package com.hgames.gdx.gamejolt;
+package com.hgames.gdx.gamejolt.requests;
+
+import com.hgames.gdx.gamejolt.GdxGameJolt;
 
 /**
  * The request to authenticate an user. It doesn't have state, as the username

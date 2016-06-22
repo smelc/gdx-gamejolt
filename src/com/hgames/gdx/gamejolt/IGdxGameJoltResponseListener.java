@@ -4,6 +4,14 @@ import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net.HttpResponseListener;
+import com.hgames.gdx.gamejolt.answers.FetchTrophyAnswer;
+import com.hgames.gdx.gamejolt.requests.AbstractRequest;
+import com.hgames.gdx.gamejolt.requests.AddTrophyRequest;
+import com.hgames.gdx.gamejolt.requests.AuthRequest;
+import com.hgames.gdx.gamejolt.requests.CloseSessionRequest;
+import com.hgames.gdx.gamejolt.requests.FetchTrophyRequest;
+import com.hgames.gdx.gamejolt.requests.OpenSessionRequest;
+import com.hgames.gdx.gamejolt.requests.PingSessionRequest;
 
 /**
  * The interface that clients of {@link GdxGameJolt} should implement. Calls to
@@ -17,6 +25,14 @@ public interface IGdxGameJoltResponseListener {
 	/**
 	 * @param request
 	 *            The request
+	 * @param added
+	 *            Whether {@code request} was a success.
+	 */
+	void addTrophies(AddTrophyRequest request, boolean added);
+
+	/**
+	 * @param request
+	 *            The request
 	 * @param answer
 	 *            Whether {@code request} was a success.
 	 */
@@ -25,10 +41,10 @@ public interface IGdxGameJoltResponseListener {
 	/**
 	 * @param request
 	 *            The request
-	 * @param added
+	 * @param answer
 	 *            Whether {@code request} was a success.
 	 */
-	void addTrophies(AddTrophyRequest request, boolean added);
+	void closedSession(CloseSessionRequest csr, Boolean answer);
 
 	/**
 	 * @param request
@@ -37,6 +53,22 @@ public interface IGdxGameJoltResponseListener {
 	 *            Trophies received as an answer to {@code request}.
 	 */
 	void fetchedTrophies(FetchTrophyRequest request, List<FetchTrophyAnswer> trophies);
+
+	/**
+	 * @param request
+	 *            The request
+	 * @param answer
+	 *            Whether {@code request} was a success.
+	 */
+	void openedSession(OpenSessionRequest request, boolean answer);
+
+	/**
+	 * @param request
+	 *            The request
+	 * @param answer
+	 *            Whether {@code request} was a success.
+	 */
+	void pingedSession(PingSessionRequest request, boolean answer);
 
 	/**
 	 * See {@link HttpResponseListener#failed(Throwable)}.
