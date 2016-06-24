@@ -1,13 +1,11 @@
 package com.hgames.gdx.gamejolt;
 
-import java.util.List;
-
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net.HttpMethods;
 import com.badlogic.gdx.Net.HttpRequest;
 import com.badlogic.gdx.Net.HttpResponse;
-import com.hgames.gdx.gamejolt.answers.FetchTrophyAnswer;
+import com.hgames.gdx.gamejolt.answers.FetchTrophiesAnswer;
 import com.hgames.gdx.gamejolt.internal.AnswerParser;
 import com.hgames.gdx.gamejolt.internal.HttpResponseListenerForwarder;
 import com.hgames.gdx.gamejolt.internal.RequestBuilder;
@@ -119,8 +117,14 @@ public abstract class GdxGameJolt {
 		this.listener = listener;
 	}
 
-	public void setListener(IGdxGameJoltResponseListener listener) {
+	/**
+	 * @param listener
+	 * @return The listener that has been replaced (can be {@code null}).
+	 */
+	public /* @Nullbale */ IGdxGameJoltResponseListener setListener(IGdxGameJoltResponseListener listener) {
+		final IGdxGameJoltResponseListener result = this.listener;
 		this.listener = listener;
+		return result;
 	}
 
 	public void auth(final AuthRequest request) {
@@ -181,7 +185,6 @@ public abstract class GdxGameJolt {
 		});
 	}
 
-
 	/**
 	 * Launches a request telling the player is starting a game session, as
 	 * specified in
@@ -191,7 +194,10 @@ public abstract class GdxGameJolt {
 	 * @param csr
 	 */
 	public void closeSession(final CloseSessionRequest csr) {
-		/* Not checking the listener, it is usually okay not to get notified of the answer */
+		/*
+		 * Not checking the listener, it is usually okay not to get notified of
+		 * the answer
+		 */
 		if (!isReady(false))
 			return;
 
@@ -214,14 +220,14 @@ public abstract class GdxGameJolt {
 	}
 
 	/**
-	 * The request for a trophy as specified in
+	 * The request for trophies as specified in
 	 * <a href="http://gamejolt.com/api/doc/game/trophies/fetch">GameJolt's
 	 * API</a>.
 	 * 
 	 * @param ftr
 	 *            The trophies to request. Must not be empty.
 	 */
-	public void fetchTrophy(final FetchTrophyRequest ftr) {
+	public void fetchTrophies(final FetchTrophyRequest ftr) {
 		if (!isReady(true))
 			return;
 
@@ -251,7 +257,7 @@ public abstract class GdxGameJolt {
 		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, ftr) {
 			@Override
 			public void handleHttpResponse(HttpResponse httpResponse) {
-				final List<FetchTrophyAnswer> trophies = parser
+				final FetchTrophiesAnswer trophies = parser
 						.parseFetchTrophyAnswer(httpResponse.getResultAsString());
 
 				if (trophies != null && listener != null)
@@ -273,7 +279,10 @@ public abstract class GdxGameJolt {
 	 * @param osr
 	 */
 	public void openSession(final OpenSessionRequest osr) {
-		/* Not checking the listener, it is usually okay not to get notified of the answer */
+		/*
+		 * Not checking the listener, it is usually okay not to get notified of
+		 * the answer
+		 */
 		if (!isReady(false))
 			return;
 

@@ -1,10 +1,8 @@
 package com.hgames.gdx.gamejolt;
 
-import java.util.List;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net.HttpResponseListener;
-import com.hgames.gdx.gamejolt.answers.FetchTrophyAnswer;
+import com.hgames.gdx.gamejolt.answers.FetchTrophiesAnswer;
 import com.hgames.gdx.gamejolt.requests.AbstractRequest;
 import com.hgames.gdx.gamejolt.requests.AddTrophyRequest;
 import com.hgames.gdx.gamejolt.requests.AuthRequest;
@@ -44,7 +42,7 @@ public interface IGdxGameJoltResponseListener {
 	 * @param answer
 	 *            Whether {@code request} was a success.
 	 */
-	void closedSession(CloseSessionRequest csr, Boolean answer);
+	void closedSession(CloseSessionRequest request, Boolean answer);
 
 	/**
 	 * @param request
@@ -52,7 +50,7 @@ public interface IGdxGameJoltResponseListener {
 	 * @param trophies
 	 *            Trophies received as an answer to {@code request}.
 	 */
-	void fetchedTrophies(FetchTrophyRequest request, List<FetchTrophyAnswer> trophies);
+	void fetchedTrophies(FetchTrophyRequest request, FetchTrophiesAnswer trophies);
 
 	/**
 	 * @param request
