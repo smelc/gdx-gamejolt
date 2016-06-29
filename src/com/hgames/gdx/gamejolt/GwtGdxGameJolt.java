@@ -19,9 +19,13 @@ public class GwtGdxGameJolt extends GdxGameJolt {
 	 *            Your game's private key. It is available in your dashboard
 	 *            under "Game API / API Settings". You should keep it secret.
 	 * @param username
-	 *            The username of the current player.
+	 *            The username of the current player. You should retrieve it as
+	 *            follows: {@code com.google.gwt.user.client.Window.Location
+					.getParameter("gjapi_username")}.
 	 * @param userToken
-	 *            The token of the current player.
+	 *            The token of the current player. You should retrieve it as
+	 *            follows: {@code com.google.gwt.user.client.Window.Location
+					.getParameter("gjapi_token")}.
 	 * @param listener
 	 *            How to answer to queries. Can be set later, but must be set
 	 *            for request to be sent.
