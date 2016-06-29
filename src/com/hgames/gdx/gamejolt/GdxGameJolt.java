@@ -176,10 +176,10 @@ public abstract class GdxGameJolt {
 
 		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, atr) {
 			@Override
-			public void handleHttpResponse(HttpResponse httpResponse) {
-				final boolean answer = parser.parseAddTrophyAnswer(httpResponse.getResultAsString());
+			public void handleHttpResponse(HttpResponse response) {
+				final Boolean answer = parser.parseAddTrophyAnswer(response.getResultAsString());
 
-				if (listener != null)
+				if (answer != null && listener != null)
 					listener.addTrophies(atr, answer);
 			}
 		});
@@ -371,8 +371,6 @@ public abstract class GdxGameJolt {
 	// Success or failure.
 
 	protected /* @Nullable */ HttpRequest buildRequest(String request) {
-		System.out.println("Received request: " + request);
-
 		/* Generate signature */
 		final String signature;
 		try {
@@ -392,8 +390,6 @@ public abstract class GdxGameJolt {
 		final HttpRequest http = new HttpRequest();
 		http.setMethod(HttpMethods.GET);
 		http.setUrl(complete);
-
-		System.out.println("Built request: " + complete);
 
 		return http;
 	}
