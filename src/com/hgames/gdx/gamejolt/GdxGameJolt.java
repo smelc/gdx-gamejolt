@@ -84,7 +84,7 @@ public abstract class GdxGameJolt {
 
 	protected boolean authentified;
 
-	private final AnswerParser parser = new AnswerParser();
+	private final AnswerParser parser = new AnswerParser(this);
 
 	/**
 	 * @param gameID
@@ -138,7 +138,7 @@ public abstract class GdxGameJolt {
 		if (http == null)
 			return;
 
-		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, request) {
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(this, listener, request) {
 			@Override
 			public void handleHttpResponse(HttpResponse httpResponse) {
 				final Boolean answer = parser.parseAuthAnswer(httpResponse.getResultAsString());
@@ -174,7 +174,7 @@ public abstract class GdxGameJolt {
 		if (http == null)
 			return;
 
-		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, atr) {
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(this, listener, atr) {
 			@Override
 			public void handleHttpResponse(HttpResponse response) {
 				final Boolean answer = parser.parseAddTrophyAnswer(response.getResultAsString());
@@ -208,7 +208,7 @@ public abstract class GdxGameJolt {
 		if (http == null)
 			return;
 
-		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, csr) {
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(this, listener, csr) {
 			@Override
 			public void handleHttpResponse(HttpResponse httpResponse) {
 				final Boolean answer = parser.parseCloseSessionAnswer(httpResponse.getResultAsString());
@@ -254,7 +254,7 @@ public abstract class GdxGameJolt {
 		if (http == null)
 			return;
 
-		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, ftr) {
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(this, listener, ftr) {
 			@Override
 			public void handleHttpResponse(HttpResponse httpResponse) {
 				final FetchTrophiesAnswer trophies = parser
@@ -293,7 +293,7 @@ public abstract class GdxGameJolt {
 		if (http == null)
 			return;
 
-		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, osr) {
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(this, listener, osr) {
 			@Override
 			public void handleHttpResponse(HttpResponse httpResponse) {
 				final Boolean answer = parser.parseOpenSessionAnswer(httpResponse.getResultAsString());
@@ -325,7 +325,7 @@ public abstract class GdxGameJolt {
 		if (http == null)
 			return;
 
-		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(listener, psr) {
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(this, listener, psr) {
 			@Override
 			public void handleHttpResponse(HttpResponse httpResponse) {
 				final Boolean answer = parser.parsePingSessionAnswer(httpResponse.getResultAsString());
@@ -336,39 +336,19 @@ public abstract class GdxGameJolt {
 		});
 	}
 
-	// Pings an open session to tell the system that it's still active. If the
-	// session hasn't been pinged within 120 seconds, the system will close the
-	// session and you will have to open another one. It's recommended that you
-	// ping every 30 seconds or so to keep the system from cleaning up your
-	// session. You can also let the system know whether the player is in an
-	// "active" or "idle" state within your game through this call.
-	//
-	// URL Call
-	// http://gamejolt.com/api/game/v1/sessions/ping/
-	// Required Parameters
-	// game_id
-	// The ID of your game.
-	// username
-	// The username of the user.
-	// user_token
-	// The user's token.
-	// Optional Parameters
-	// status
-	// Can be "active" or "idle". The session starts off in an "active" state.
-	// Returns
-	// Success or failure.
-
-	// URL Call
-	// http://gamejolt.com/api/game/v1/sessions/close/
-	// Required Parameters
-	// game_id
-	// The ID of your game.
-	// username
-	// The username of the user.
-	// user_token
-	// The user's token.
-	// Returns
-	// Success or failure.
+	public void log(String log, /* @Nullable */ Throwable t) {
+		if (Gdx.app == null) {
+			/* Can happen when app is initializing */
+			System.out.println("[" + TAG + "] " + log);
+			if (t != null)
+				t.printStackTrace();
+		} else {
+			if (t == null)
+				Gdx.app.log(TAG, log);
+			else
+				Gdx.app.log(TAG, log, t);
+		}
+	}
 
 	protected /* @Nullable */ HttpRequest buildRequest(String request) {
 		/* Generate signature */
@@ -392,15 +372,6 @@ public abstract class GdxGameJolt {
 		http.setUrl(complete);
 
 		return http;
-	}
-
-	protected void log(String log) {
-		if (Gdx.app == null) {
-			/* Can happen when app is initializing */
-			System.out.println("[" + TAG + "] " + log);
-			return;
-		} else
-			Gdx.app.log(TAG, log);
 	}
 
 	protected boolean isReady(boolean checkListener) {

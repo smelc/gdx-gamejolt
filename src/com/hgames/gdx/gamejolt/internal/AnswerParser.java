@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.badlogic.gdx.Gdx;
 import com.hgames.gdx.gamejolt.GdxGameJolt;
 import com.hgames.gdx.gamejolt.answers.Difficulty;
 import com.hgames.gdx.gamejolt.answers.FetchTrophiesAnswer;
@@ -16,6 +15,12 @@ import com.hgames.gdx.gamejolt.requests.RequestKind;
  * @author smelC
  */
 public class AnswerParser {
+
+	protected final GdxGameJolt api;
+
+	public AnswerParser(GdxGameJolt api) {
+		this.api = api;
+	}
 
 	/**
 	 * @param answer
@@ -32,7 +37,7 @@ public class AnswerParser {
 			return null;
 		final String msg = keyPairs.get("message");
 		if (msg == null) {
-			log("Key \"message\" is missing in answer to " + RequestKind.ADD_TROPHY + " request");
+			api.log("Key \"message\" is missing in answer to " + RequestKind.ADD_TROPHY + " request", null);
 			return null;
 		} else {
 			return !"The user already had this trophy".equals(msg);
@@ -136,7 +141,7 @@ public class AnswerParser {
 			final String image_url = valueOfKey(buf[4], "image_url");
 			final String achieved = valueOfKey(buf[5], "achieved");
 			if (id == null) {
-				log("Skipping a trophy with a null ID");
+				api.log("Skipping a trophy with a null ID", null);
 			} else {
 				final Difficulty dif = Difficulty.of(difficulty);
 				result.add(
@@ -173,10 +178,10 @@ public class AnswerParser {
 	 *            For logging purposes only.
 	 * @return Whether {@code keyPairs} contains {@code "success" -> "true"}.
 	 */
-	private static Boolean getSuccess(Map<String, String> keyPairs, String wholeAnswer) {
+	private Boolean getSuccess(Map<String, String> keyPairs, String wholeAnswer) {
 		final String value = keyPairs.get("success");
 		if (value == null) {
-			log("success key is missing in answer: " + wholeAnswer);
+			api.log("success key is missing in answer: " + wholeAnswer, null);
 			return null;
 		} else {
 			if ("true".equals(value))
@@ -184,13 +189,13 @@ public class AnswerParser {
 			else if ("false".equals(value))
 				return false;
 			else {
-				log("success value is unrecognized in answer: " + value);
+				api.log("success value is unrecognized in answer: " + value, null);
 				return null;
 			}
 		}
 	}
 
-	private static Map<String, String> asKeyPairs(String answer) {
+	private Map<String, String> asKeyPairs(String answer) {
 		final List<String> lines = splitInLines(answer);
 		final int sz = lines.size();
 		final Map<String, String> result = new HashMap<String, String>(lines.size());
@@ -198,15 +203,15 @@ public class AnswerParser {
 			final String line = lines.get(i);
 			final String key = key(line);
 			if (key == null) {
-				log("Could not recognize key in " + line);
+				api.log("Could not recognize key in " + line, null);
 				continue;
 			}
 			if (result.containsKey(key))
-				log("Duplicated key: " + key + " in answer: " + answer);
+				api.log("Duplicated key: " + key + " in answer: " + answer, null);
 			else {
 				final String value = value(line);
 				if (value == null)
-					log("Could not recognize value in " + line);
+					api.log("Could not recognize value in " + line, null);
 				else
 					result.put(key, value);
 			}
@@ -221,12 +226,12 @@ public class AnswerParser {
 	 *         {@code key} is indeed a key. {@code null} if something
 	 *         unrecognized.
 	 */
-	private static String valueOfKey(String keyValue, String key) {
+	private String valueOfKey(String keyValue, String key) {
 		if (keyValue == null)
 			return null;
 		final String k = key(keyValue);
 		if (k == null || !k.equals(key)) {
-			log("Expected key: " + key + ", but received: " + k);
+			api.log("Expected key: " + key + ", but received: " + k, null);
 			return null;
 		} else
 			return value(keyValue);
@@ -245,7 +250,7 @@ public class AnswerParser {
 	 * @return THe index of the continuation (the next {@code start}), or
 	 *         anything negative to tell to stop.
 	 */
-	private static int nextLines(String string, int start, int nb, String[] buf) {
+	private int nextLines(String string, int start, int nb, String[] buf) {
 		/* Reinit result */
 		for (int i = 0; i < buf.length; ++i)
 			buf[i] = null;
@@ -275,7 +280,7 @@ public class AnswerParser {
 		return current;
 	}
 
-	private static List<String> splitInLines(String answer) {
+	private List<String> splitInLines(String answer) {
 		final ArrayList<String> result = new ArrayList<String>(4);
 
 		String current = answer;
@@ -304,7 +309,7 @@ public class AnswerParser {
 	 *            A string of the form {@code key:"value"}
 	 * @return The key or {@code null} if not found.
 	 */
-	private static String key(String answer) {
+	private String key(String answer) {
 		final int idx = answer.indexOf(":");
 		if (idx < 0)
 			return null;
@@ -318,7 +323,7 @@ public class AnswerParser {
 	 * @return The value, without its enclosing quotes; or {@code null} if not
 	 *         found.
 	 */
-	private static String value(String answer) {
+	private String value(String answer) {
 		final int idx = answer.indexOf(":");
 		if (idx < 0)
 			return null;
@@ -333,73 +338,5 @@ public class AnswerParser {
 				return null;
 		} else
 			return null;
-	}
-
-	/**
-	 * @param answer
-	 *            The answer to a request of kind {@code kind}
-	 * @param kind
-	 * @return Whether {@code answer} represents a success.
-	 */
-	@SuppressWarnings("unused")
-	@Deprecated
-	private static boolean parseBooleanAnswer(String answer, RequestKind kind) {
-		String after = after(answer, "success:");
-		if (after == null) {
-			log("Expected answer to " + kind + " to start with \"success:\"");
-			return false;
-		}
-
-		after = trimTrailingNewLines(after);
-
-		if (equalsBracketed(after, true))
-			/* Success */
-			return true;
-		else {
-			if (!equalsBracketed(after, false))
-				log("Unrecognized content after \"success:\" in answer of " + kind + ": " + after);
-			return false;
-		}
-	}
-
-	/**
-	 * @param s
-	 * @param val
-	 * @return Whether {@code s} is {@code "true"} or {@code "false"}.
-	 */
-	@Deprecated
-	private static boolean equalsBracketed(String s, boolean val) {
-		return ("\"" + String.valueOf(val) + "\"").equals(s);
-	}
-
-	/**
-	 * @param entire
-	 * @param prefix
-	 * @return The part of {@code entire} after {@code prefix}, if
-	 *         {@code entire} starts with {@code prefix}. Otherwise {@code null}
-	 *         .
-	 */
-	@Deprecated
-	private static String after(String entire, String prefix) {
-		if (entire.startsWith(prefix)) {
-			return entire.substring(prefix.length());
-		} else
-			return null;
-	}
-
-	private static void log(String s) {
-		if (Gdx.app == null)
-			System.out.println(s);
-		else
-			Gdx.app.log(GdxGameJolt.TAG, s);
-	}
-
-	private static String trimTrailingNewLines(String s) {
-		if (s.endsWith("\r\n"))
-			return trimTrailingNewLines(s.substring(0, s.length() - 2));
-		else if (s.endsWith("\n"))
-			return trimTrailingNewLines(s.substring(0, s.length() - 1));
-		else
-			return s;
 	}
 }

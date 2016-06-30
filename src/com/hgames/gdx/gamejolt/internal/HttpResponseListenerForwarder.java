@@ -13,24 +13,37 @@ import com.hgames.gdx.gamejolt.requests.AbstractRequest;
  */
 public abstract class HttpResponseListenerForwarder implements HttpResponseListener {
 
+	protected final GdxGameJolt api;
 	protected final IGdxGameJoltResponseListener delegate;
 	protected final AbstractRequest request;
 
-	public HttpResponseListenerForwarder(IGdxGameJoltResponseListener delegate, AbstractRequest request) {
+	public HttpResponseListenerForwarder(GdxGameJolt api, IGdxGameJoltResponseListener delegate,
+			AbstractRequest request) {
+		this.api = api;
 		this.delegate = delegate;
 		this.request = request;
 	}
 
 	@Override
 	public void failed(Throwable t) {
-		/* Forward to client, adding the concerned request. */
-		delegate.failed(request, t);
+		if (delegate == null) {
+			/*
+			 * This may not be a bug, for example if a connection isn't
+			 * available, it'll trigger a 'java.net.UnknownHostException'.
+			 */
+			api.log("A request failed, this may not be a bug (no connection)", t);
+		} else {
+			/* Forward to client, adding the concerned request. */
+			delegate.failed(request, t);
+		}
 	}
 
 	@Override
 	public void cancelled() {
-		/* Forward to client, adding the concerned request. */
-		delegate.cancelled(request);
+		if (delegate != null) {
+			/* Forward to client, adding the concerned request. */
+			delegate.cancelled(request);
+		}
 	}
 
 }
