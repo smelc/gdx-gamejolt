@@ -148,7 +148,7 @@ public abstract class GdxGameJolt {
 				GdxGameJolt.this.authentified = answer;
 
 				log((answer ? "Successfully authentified" : "Could not authentify") + " " + username + "/"
-						+ userToken + " on GameJolt");
+						+ userToken + " on GameJolt", null);
 			}
 		});
 	}
