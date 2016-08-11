@@ -6,5 +6,5 @@ package com.hgames.gdx.gamejolt.requests;
  * @author smelC
  */
 public enum RequestKind {
-	ADD_TROPHY, AUTH, CLOSE_SESSION, FETCH_TROPHY, OPEN_SESSION, PING_SESSION,
+	ADD_SCORE, ADD_TROPHY, AUTH, CLOSE_SESSION, FETCH_SCORES, FETCH_TROPHY, OPEN_SESSION, PING_SESSION,
 }

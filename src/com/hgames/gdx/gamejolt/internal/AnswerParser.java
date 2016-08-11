@@ -7,6 +7,8 @@ import java.util.Map;
 
 import com.hgames.gdx.gamejolt.GdxGameJolt;
 import com.hgames.gdx.gamejolt.answers.Difficulty;
+import com.hgames.gdx.gamejolt.answers.FetchScoresAnswer;
+import com.hgames.gdx.gamejolt.answers.FetchScoresAnswer.FetchedScore;
 import com.hgames.gdx.gamejolt.answers.FetchTrophiesAnswer;
 import com.hgames.gdx.gamejolt.answers.FetchTrophiesAnswer.FetchedTrophy;
 import com.hgames.gdx.gamejolt.requests.RequestKind;
@@ -20,6 +22,15 @@ public class AnswerParser {
 
 	public AnswerParser(GdxGameJolt api) {
 		this.api = api;
+	}
+
+	/**
+	 * @param answer
+	 * @return Whether adding the score could be done, or {@code null} if the
+	 *         answer is badly formed.
+	 */
+	public Boolean parseAddScoreAnswer(String answer) {
+		return getSuccess(asKeyPairs(answer), answer);
 	}
 
 	/**
@@ -59,6 +70,93 @@ public class AnswerParser {
 	 */
 	public Boolean parseCloseSessionAnswer(String answer) {
 		return getSuccess(asKeyPairs(answer), answer);
+	}
+
+	/**
+	 * @param answer
+	 * @return The scores, or {@code null} if the answer is badly-formed.
+	 */
+	/* An example answer */
+	// success:"true"
+	// score:"129"
+	// sort:"129"
+	// extra_data:""
+	// user:"hgames"
+	// user_id:"124"
+	// guest:""
+	// stored:"2 hours ago"
+	// score:"64"
+	// sort:"64"
+	// extra_data:""
+	// user:"foo"
+	// user_id:"122"
+	// guest:""
+	// stored:"4 hours ago"
+	public FetchScoresAnswer parseFetchScoresAnswer(String answer) {
+		/*
+		 * Don't change this parser naively, it is pretty smart as it doesn't
+		 * split 'answer' recursively, but line by line, to minimize
+		 * allocations. 'answer' can be large if there are 100 high scores (the
+		 * maximum).
+		 */
+
+		int curstart;
+
+		final int len = answer.length();
+
+		{
+			final int idx = answer.indexOf("\r\n");
+			final String beginning = idx < 0 ? answer : answer.substring(0, idx);
+			/*
+			 * idx < 0 can happen if no score was stored I guess, the answer
+			 * containing the single line 'success:"true"'
+			 */
+			final Map<String, String> keyPairs = asKeyPairs(beginning);
+			final Boolean success = getSuccess(keyPairs, answer);
+			if (success == null || !success)
+				return null;
+			if (idx < 0 || len <= idx + 2)
+				return null;
+
+			curstart = idx + 2;
+		}
+
+		final List<FetchedScore> result = new ArrayList<FetchedScore>(32);
+
+		final int singleScoreNbOfLines = 7;
+		final String[] buf = new String[singleScoreNbOfLines];
+
+		while (true) {
+			/* Parsing: */
+			// score:"129"
+			// sort:"129"
+			// extra_data:""
+			// user:"hgames"
+			// user_id:"124"
+			// guest:""
+			// stored:"2 hours ago"
+			curstart = nextLines(answer, curstart, singleScoreNbOfLines, buf);
+			final String score = valueOfKey(buf[0], "score");
+			final String sort = valueOfKey(buf[1], "sort");
+			final String extraData = valueOfKey(buf[2], "extra_data");
+			final String user = valueOfKey(buf[3], "user");
+			final String userID = valueOfKey(buf[4], "user_id");
+			final String guest = valueOfKey(buf[5], "guest");
+			final String stored = valueOfKey(buf[6], "stored");
+			final int sortInt;
+			try {
+				sortInt = Integer.valueOf(sort);
+				final FetchedScore fs = new FetchedScore(score, sortInt, extraData, user, userID, guest,
+						stored);
+				result.add(fs);
+			} catch (NumberFormatException __) {
+				api.log("Skipping a score with an invalid 'sort' value: " + sort, null);
+			}
+			if (curstart < 0 || len <= curstart)
+				break;
+		}
+
+		return new FetchScoresAnswer(result);
 	}
 
 	/**
@@ -247,7 +345,7 @@ public class AnswerParser {
 	 * @param buf
 	 *            An array of size {@code nb} (or more), where to write the
 	 *            first nb lines
-	 * @return THe index of the continuation (the next {@code start}), or
+	 * @return The index of the continuation (the next {@code start}), or
 	 *         anything negative to tell to stop.
 	 */
 	private int nextLines(String string, int start, int nb, String[] buf) {

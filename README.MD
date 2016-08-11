@@ -16,5 +16,7 @@ Here are this library's defects:
     * Close a session
     * Add an achievement
     * Fetch achievements
+    * Add a score
+    * Fetch scores
 
 Code in this library is in the public domain (see LICENSE).

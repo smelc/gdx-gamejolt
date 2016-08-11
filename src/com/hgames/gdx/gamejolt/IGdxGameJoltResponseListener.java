@@ -2,11 +2,14 @@ package com.hgames.gdx.gamejolt;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net.HttpResponseListener;
+import com.hgames.gdx.gamejolt.answers.FetchScoresAnswer;
 import com.hgames.gdx.gamejolt.answers.FetchTrophiesAnswer;
 import com.hgames.gdx.gamejolt.requests.AbstractRequest;
+import com.hgames.gdx.gamejolt.requests.AddScoreRequest;
 import com.hgames.gdx.gamejolt.requests.AddTrophyRequest;
 import com.hgames.gdx.gamejolt.requests.AuthRequest;
 import com.hgames.gdx.gamejolt.requests.CloseSessionRequest;
+import com.hgames.gdx.gamejolt.requests.FetchScoresRequest;
 import com.hgames.gdx.gamejolt.requests.FetchTrophyRequest;
 import com.hgames.gdx.gamejolt.requests.OpenSessionRequest;
 import com.hgames.gdx.gamejolt.requests.PingSessionRequest;
@@ -19,6 +22,14 @@ import com.hgames.gdx.gamejolt.requests.PingSessionRequest;
  * @author smelC
  */
 public interface IGdxGameJoltResponseListener {
+
+	/**
+	 * @param request
+	 *            The request
+	 * @param added
+	 *            Whether {@code request} was a success.
+	 */
+	void addScore(AddScoreRequest request, boolean added);
 
 	/**
 	 * @param request
@@ -43,6 +54,14 @@ public interface IGdxGameJoltResponseListener {
 	 *            Whether {@code request} was a success.
 	 */
 	void closedSession(CloseSessionRequest request, Boolean answer);
+
+	/**
+	 * @param request
+	 *            The request.
+	 * @param scores
+	 *            Scores received as an answer to {@code request}.
+	 */
+	void fetchedScores(FetchScoresRequest request, FetchScoresAnswer scores);
 
 	/**
 	 * @param request

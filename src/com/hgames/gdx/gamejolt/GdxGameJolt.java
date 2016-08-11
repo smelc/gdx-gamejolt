@@ -5,14 +5,17 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net.HttpMethods;
 import com.badlogic.gdx.Net.HttpRequest;
 import com.badlogic.gdx.Net.HttpResponse;
+import com.hgames.gdx.gamejolt.answers.FetchScoresAnswer;
 import com.hgames.gdx.gamejolt.answers.FetchTrophiesAnswer;
 import com.hgames.gdx.gamejolt.internal.AnswerParser;
 import com.hgames.gdx.gamejolt.internal.HttpResponseListenerForwarder;
 import com.hgames.gdx.gamejolt.internal.RequestBuilder;
 import com.hgames.gdx.gamejolt.requests.AbstractRequest;
+import com.hgames.gdx.gamejolt.requests.AddScoreRequest;
 import com.hgames.gdx.gamejolt.requests.AddTrophyRequest;
 import com.hgames.gdx.gamejolt.requests.AuthRequest;
 import com.hgames.gdx.gamejolt.requests.CloseSessionRequest;
+import com.hgames.gdx.gamejolt.requests.FetchScoresRequest;
 import com.hgames.gdx.gamejolt.requests.FetchTrophyRequest;
 import com.hgames.gdx.gamejolt.requests.OpenSessionRequest;
 import com.hgames.gdx.gamejolt.requests.PingSessionRequest;
@@ -48,6 +51,11 @@ import com.hgames.gdx.gamejolt.requests.PingSessionRequest;
  * requests that have been submitted but for which answers haven't been received
  * yet. Then, when an answer comes, the instance fetches from its internal state
  * what to do with it; and removes the request from the unanswered list.
+ * 
+ * W.r.t. libgdx's lifecycle, you should usually check data (i.e. answers)
+ * stored in your {@link IGdxGameJoltResponseListener} from the {@code render}
+ * method, doing something appropriate if data arrived; or waiting a bit more
+ * otherwise.
  * </p>
  * 
  * <p>
@@ -154,6 +162,54 @@ public abstract class GdxGameJolt {
 	}
 
 	/**
+	 * Launches a request to record a score, as specified in
+	 * <a href="http://gamejolt.com/api/doc/game/scores/add">GameJolt 's API</a>
+	 * .
+	 * 
+	 * @param asr
+	 *            The score to add
+	 */
+	public void addScore(final AddScoreRequest asr) {
+		if (!isReady(true))
+			return;
+
+		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/scores/add/");
+		builder.addKeyValuePair("game_id", String.valueOf(gameID));
+		builder.addKeyValuePair("score", asr.score);
+		builder.addKeyValuePair("sort", String.valueOf(asr.sort));
+		if (asr.guest == null) {
+			builder.addKeyValuePair("username", username);
+			builder.addKeyValuePair("user_token", userToken);
+		} else {
+			builder.addKeyValuePair("guest", asr.guest);
+		}
+		if (asr.extraData != null) {
+			if (asr.extraData.contains(" "))
+				log("Not honoring 'extra_data' field in instance of " + asr.getClass().getSimpleName()
+						+ ", because it contains at least a space. This isn't supported by GameJolt's API.",
+						null);
+			else
+				builder.addKeyValuePair("extra_data", asr.extraData);
+		}
+		if (asr.tableID != null)
+			builder.addKeyValuePair("table_id", asr.tableID);
+
+		final HttpRequest http = buildRequest(builder.build());
+		if (http == null)
+			return;
+
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(this, listener, asr) {
+			@Override
+			public void handleHttpResponse(HttpResponse response) {
+				final Boolean answer = parser.parseAddScoreAnswer(response.getResultAsString());
+
+				if (answer != null && listener != null)
+					listener.addScore(asr, answer);
+			}
+		});
+	}
+
+	/**
 	 * Launches a request to record that a trophy was achieved, as specified in
 	 * <a href="http://gamejolt.com/api/doc/game/trophies/add-achieved">GameJolt
 	 * 's API</a>.
@@ -215,6 +271,48 @@ public abstract class GdxGameJolt {
 
 				if (answer != null && listener != null)
 					listener.closedSession(csr, answer);
+			}
+		});
+	}
+
+	/**
+	 * Launches a request to fetch scores, as specified in
+	 * <a href="http://gamejolt.com/api/doc/game/scores/fetch">GameJolt 's
+	 * API</a> .
+	 * 
+	 * @param fsr
+	 *            The scores to fetch
+	 */
+	public void fetchScores(final FetchScoresRequest fsr) {
+		if (!isReady(true))
+			return;
+
+		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/scores/");
+		if ((fsr.username == null) != (fsr.userToken == null)) {
+			log("Skipping inconsistent request: " + fsr.toString()
+					+ ". username and user_token should be set or unset together.", null);
+			return;
+		}
+		builder.addKeyValuePair("game_id", String.valueOf(gameID));
+		if (fsr.username != null) {
+			builder.addKeyValuePair("username", fsr.username);
+			builder.addKeyValuePair("user_token", fsr.userToken);
+		}
+		builder.addKeyValuePair("limit", String.valueOf(fsr.limit));
+		if (fsr.tableID != null)
+			builder.addKeyValuePair("table_id", fsr.tableID);
+
+		final HttpRequest http = buildRequest(builder.build());
+		if (http == null)
+			return;
+
+		Gdx.net.sendHttpRequest(http, new HttpResponseListenerForwarder(this, listener, fsr) {
+			@Override
+			public void handleHttpResponse(HttpResponse response) {
+				final FetchScoresAnswer answer = parser.parseFetchScoresAnswer(response.getResultAsString());
+
+				if (answer != null && listener != null)
+					listener.fetchedScores(fsr, answer);
 			}
 		});
 	}

@@ -2,16 +2,20 @@ package com.hgames.gdx.gamejolt.answers;
 
 import java.util.List;
 
+import com.hgames.gdx.gamejolt.requests.FetchTrophyRequest;
+
 /**
  * The answer of a
  * <a href="http://gamejolt.com/api/doc/game/trophies/fetch">fetch trophy
  * request</a>.
  * 
  * @author smelC
+ * 
+ * @see FetchTrophyRequest
  */
 public class FetchTrophiesAnswer {
 
-	public List<FetchedTrophy> trophies;
+	public final List<FetchedTrophy> trophies;
 
 	public FetchTrophiesAnswer(List<FetchedTrophy> backup) {
 		this.trophies = backup;
