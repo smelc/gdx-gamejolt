@@ -1,1 +1,7 @@
+## Eclipse
 bin/*
+.settings/*
+
+## Gradle
+build/
+.gradle/
