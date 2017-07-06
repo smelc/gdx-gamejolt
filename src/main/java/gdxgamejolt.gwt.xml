@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//Google Inc.//DTD Google Web Toolkit trunk//EN" "https://gwt.googlesource.com/gwt/+/master/distro-source/core/src/gwt-module.dtd">
+<module>
+    <!-- should correspond to a Java package -->
+	<source path="com/hgames/gdx/gamejolt"/>
+</module>
