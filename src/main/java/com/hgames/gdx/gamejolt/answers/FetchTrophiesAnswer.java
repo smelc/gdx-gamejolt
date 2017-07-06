@@ -53,12 +53,12 @@ public class FetchTrophiesAnswer {
 
 		@Override
 		public String toString() {
-			final String eol = System.getProperty("line.separator");
+			final String sep = "|";
 			final StringBuilder result = new StringBuilder();
-			result.append("trophyID:" + trophyID + eol);
-			result.append("title:" + title + eol);
-			result.append("description:" + description + eol);
-			result.append("imageUrl:" + imageUrl + eol);
+			result.append("trophyID:" + trophyID + sep);
+			result.append("title:" + title + sep);
+			result.append("description:" + description + sep);
+			result.append("imageUrl:" + imageUrl + sep);
 			result.append("achieved:" + achieved);
 			return result.toString();
 		}
