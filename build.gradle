@@ -7,7 +7,7 @@ repositories {
 // define 'gdxVersion' if not defined yet. This allows
 // a project depending on com.hgames.gdx.gamejolt (like: your game) to define
 // 'gdxVersion' itself, and yet be able to build this project standalone too.
-def gdxVersion = System.getenv("gdxVersion") ?: "1.9.3"
+def gdxVersion = System.getenv("gdxVersion") ?: "1.9.6"
 
 dependencies {
     compile "com.badlogicgames.gdx:gdx:$gdxVersion"

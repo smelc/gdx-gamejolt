@@ -15,27 +15,27 @@ public class FetchScoresRequest extends AbstractRequest {
 
 	/**
 	 * @param username
-	 *            Only pass the user information in if you would like to
-	 *            retrieve scores for just that user. Leave the user information
-	 *            blank to retrieve all scores.
+	 *            Only pass the user information in if you would like to retrieve
+	 *            scores for just that user. Leave the user information blank to
+	 *            retrieve all scores.
 	 * @param userToken
-	 *            Only pass the user information in if you would like to
-	 *            retrieve scores for just that user. Leave the user information
-	 *            blank to retrieve all scores.
+	 *            Only pass the user information in if you would like to retrieve
+	 *            scores for just that user. Leave the user information blank to
+	 *            retrieve all scores.
 	 * @param limit
-	 *            The number of scores you'd like to return. The default value
-	 *            (if null) is 10 scores. The maximum amount of scores you can
-	 *            retrieve is 100.
+	 *            The number of scores you'd like to return. The default value (if
+	 *            null) is 10 scores. The maximum amount of scores you can retrieve
+	 *            is 100.
 	 * @param tableID
-	 *            The id of the high score table that you want to get high
-	 *            scores for. If null the scores from the primary high score
-	 *            table will be returned.
+	 *            The id of the high score table that you want to get high scores
+	 *            for. If null the scores from the primary high score table will be
+	 *            returned.
 	 */
-	public FetchScoresRequest(String username, /* @Nullable */ String userToken,
-			/* @Nullable */ Integer limit, /* @Nullable */ String tableID) {
+	public FetchScoresRequest(String username, /* @Nullable */ String userToken, /* @Nullable */ Integer limit,
+			/* @Nullable */ String tableID) {
 		this.username = username;
 		this.userToken = userToken;
-		this.limit = limit == null ? 10 : Math.min(100, limit);
+		this.limit = limit == null ? 10 : Math.min(100, limit.intValue());
 		this.tableID = tableID;
 	}
 

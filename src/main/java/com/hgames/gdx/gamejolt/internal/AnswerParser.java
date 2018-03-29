@@ -51,7 +51,7 @@ public class AnswerParser {
 			api.log("Key \"message\" is missing in answer to " + RequestKind.ADD_TROPHY + " request", null);
 			return null;
 		} else {
-			return !"The user already had this trophy".equals(msg);
+			return Boolean.valueOf(!"The user already had this trophy".equals(msg));
 		}
 	}
 
@@ -113,7 +113,7 @@ public class AnswerParser {
 			 */
 			final Map<String, String> keyPairs = asKeyPairs(beginning);
 			final Boolean success = getSuccess(keyPairs, answer);
-			if (success == null || !success)
+			if (success == null || !success.booleanValue())
 				return null;
 			if (idx < 0 || len <= idx + 2)
 				return null;
@@ -145,7 +145,7 @@ public class AnswerParser {
 			final String stored = valueOfKey(buf[6], "stored");
 			final int sortInt;
 			try {
-				sortInt = Integer.valueOf(sort);
+				sortInt = Integer.parseInt(sort);
 				final FetchedScore fs = new FetchedScore(score, sortInt, extraData, user, userID, guest,
 						stored);
 				result.add(fs);
@@ -210,7 +210,7 @@ public class AnswerParser {
 			 */
 			final Map<String, String> keyPairs = asKeyPairs(beginning);
 			final Boolean success = getSuccess(keyPairs, answer);
-			if (success == null || !success)
+			if (success == null || !success.booleanValue())
 				return null;
 			if (idx < 0 || len <= idx + 2)
 				return null;
@@ -283,9 +283,9 @@ public class AnswerParser {
 			return null;
 		} else {
 			if ("true".equals(value))
-				return true;
+				return Boolean.TRUE;
 			else if ("false".equals(value))
-				return false;
+				return Boolean.FALSE;
 			else {
 				api.log("success value is unrecognized in answer: " + value, null);
 				return null;

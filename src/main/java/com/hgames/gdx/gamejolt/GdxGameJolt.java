@@ -153,9 +153,10 @@ public abstract class GdxGameJolt {
 				if (answer == null)
 					return;
 
-				GdxGameJolt.this.authentified = answer;
+				final boolean banswer = answer.booleanValue();
+				GdxGameJolt.this.authentified = banswer;
 
-				log((answer ? "Successfully authentified" : "Could not authentify") + " " + username + "/"
+				log((banswer ? "Successfully authentified" : "Could not authentify") + " " + username + "/"
 						+ userToken + " on GameJolt", null);
 			}
 		});
@@ -204,7 +205,7 @@ public abstract class GdxGameJolt {
 				final Boolean answer = parser.parseAddScoreAnswer(response.getResultAsString());
 
 				if (answer != null && listener != null)
-					listener.addScore(asr, answer);
+					listener.addScore(asr, answer.booleanValue());
 			}
 		});
 	}
@@ -236,7 +237,7 @@ public abstract class GdxGameJolt {
 				final Boolean answer = parser.parseAddTrophyAnswer(response.getResultAsString());
 
 				if (answer != null && listener != null)
-					listener.addTrophies(atr, answer);
+					listener.addTrophies(atr, answer.booleanValue());
 			}
 		});
 	}
@@ -397,7 +398,7 @@ public abstract class GdxGameJolt {
 				final Boolean answer = parser.parseOpenSessionAnswer(httpResponse.getResultAsString());
 
 				if (answer != null && listener != null)
-					listener.openedSession(osr, answer);
+					listener.openedSession(osr, answer.booleanValue());
 			}
 		});
 	}
@@ -429,7 +430,7 @@ public abstract class GdxGameJolt {
 				final Boolean answer = parser.parsePingSessionAnswer(httpResponse.getResultAsString());
 
 				if (answer != null && listener != null)
-					listener.pingedSession(psr, answer);
+					listener.pingedSession(psr, answer.booleanValue());
 			}
 		});
 	}
