@@ -139,7 +139,7 @@ public abstract class GdxGameJolt {
 		if (!isReady(false))
 			return;
 
-		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/users/auth/");
+		final RequestBuilder builder = new RequestBuilder("https://gamejolt.com/api/game/v1/users/auth/");
 		addGameIDUserNameUserToken(builder);
 
 		final HttpRequest http = buildRequest(builder.build());
@@ -174,7 +174,7 @@ public abstract class GdxGameJolt {
 		if (!isReady(true))
 			return;
 
-		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/scores/add/");
+		final RequestBuilder builder = new RequestBuilder("https://gamejolt.com/api/game/v1/scores/add/");
 		builder.addKeyValuePair("game_id", String.valueOf(gameID));
 		builder.addKeyValuePair("score", asr.score);
 		builder.addKeyValuePair("sort", String.valueOf(asr.sort));
@@ -223,7 +223,7 @@ public abstract class GdxGameJolt {
 			return;
 
 		final RequestBuilder builder = new RequestBuilder(
-				"http://gamejolt.com/api/game/v1/trophies/add-achieved");
+				"https://gamejolt.com/api/game/v1/trophies/add-achieved");
 		addGameIDUserNameUserToken(builder);
 		builder.addKeyValuePair("trophy_id", atr.trophyID);
 
@@ -258,7 +258,7 @@ public abstract class GdxGameJolt {
 		if (!isReady(false))
 			return;
 
-		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/sessions/close/");
+		final RequestBuilder builder = new RequestBuilder("https://gamejolt.com/api/game/v1/sessions/close/");
 		addGameIDUserNameUserToken(builder);
 
 		final HttpRequest http = buildRequest(builder.build());
@@ -288,7 +288,7 @@ public abstract class GdxGameJolt {
 		if (!isReady(true))
 			return;
 
-		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/scores/");
+		final RequestBuilder builder = new RequestBuilder("https://gamejolt.com/api/game/v1/scores/");
 		if ((fsr.username == null) != (fsr.userToken == null)) {
 			log("Skipping inconsistent request: " + fsr.toString()
 					+ ". username and user_token should be set or unset together.", null);
@@ -335,7 +335,7 @@ public abstract class GdxGameJolt {
 			return;
 		}
 
-		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/trophies/");
+		final RequestBuilder builder = new RequestBuilder("https://gamejolt.com/api/game/v1/trophies/");
 		addGameIDUserNameUserToken(builder);
 		if (ftr.achieved != null)
 			builder.addKeyValuePair("achieved", String.valueOf(ftr.achieved));
@@ -385,7 +385,7 @@ public abstract class GdxGameJolt {
 		if (!isReady(false))
 			return;
 
-		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/sessions/open/");
+		final RequestBuilder builder = new RequestBuilder("https://gamejolt.com/api/game/v1/sessions/open/");
 		addGameIDUserNameUserToken(builder);
 
 		final HttpRequest http = buildRequest(builder.build());
@@ -414,7 +414,7 @@ public abstract class GdxGameJolt {
 		if (!isReady(false))
 			return;
 
-		final RequestBuilder builder = new RequestBuilder("http://gamejolt.com/api/game/v1/sessions/ping/");
+		final RequestBuilder builder = new RequestBuilder("https://gamejolt.com/api/game/v1/sessions/ping/");
 		addGameIDUserNameUserToken(builder);
 
 		if (psr.activeOrIdle != null)
